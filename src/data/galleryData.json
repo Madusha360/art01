@@ -1,0 +1,186 @@
+{
+  "artworks": [
+    {
+      "id": "silence-in-ochre",
+      "slug": "silence-in-ochre",
+      "title": "Silence in Ochre",
+      "artist": "Elena Rostova",
+      "year": "2026",
+      "medium": "Oil and charcoal on Belgian linen",
+      "dimensions": "180 x 140 cm",
+      "status": "Available",
+      "imageUrl": "/images/artwork_ochre.png",
+      "aspectRatio": 0.8,
+      "description": "An exploration of visual silence and tectonic layering. Applying oil paint with a palette knife in thin, geological strata, the work juxtaposes the raw warmth of earth ochres against a single, definitive black charcoal intervention that anchors the canvas."
+    },
+    {
+      "id": "construct-ii",
+      "slug": "construct-ii",
+      "title": "Construct II",
+      "artist": "Elena Rostova",
+      "year": "2025",
+      "medium": "Brushed steel and travertine stone",
+      "dimensions": "75 x 75 x 40 cm",
+      "status": "Sold",
+      "imageUrl": "/images/artwork_sculpture.png",
+      "aspectRatio": 1,
+      "description": "Construct II negotiates the dialogue between organic sedimentation and industrialized geometry. The brushed stainless steel plates intersect the porous travertine base at precise angles, creating a weightless gravitational tension."
+    },
+    {
+      "id": "overpass-at-dusk",
+      "slug": "overpass-at-dusk",
+      "title": "The Overpass at Dusk",
+      "artist": "Elena Rostova",
+      "year": "2024",
+      "medium": "Archival pigment print on cotton rag",
+      "dimensions": "110 x 195 cm",
+      "status": "Available",
+      "imageUrl": "/images/artwork_photography.png",
+      "aspectRatio": 1.77,
+      "description": "A study in industrial rhythms and brutalist geometries. Renders the massive concrete shadows of urban infrastructure with deep ink saturation, emphasizing the quiet, sculptural presence of these monolithic structures during twilight."
+    },
+    {
+      "id": "fragments-of-shell",
+      "slug": "fragments-of-shell",
+      "title": "Fragments of Shell",
+      "artist": "Elena Rostova",
+      "year": "2025",
+      "medium": "Charcoal and graphite on paper",
+      "dimensions": "50 x 38 cm",
+      "status": "Private Collection",
+      "imageUrl": "/images/artwork_drawing.png",
+      "aspectRatio": 0.75,
+      "description": "Part of an ongoing series focusing on organic relics. This delicate drawing highlights the micro-topographies of calcium structures, using graphite gradients to mimic the tactile transitions from coarse outer surfaces to smooth interiors."
+    },
+    {
+      "id": "bvvnvnnv",
+      "slug": "bvvnvnnv",
+      "title": "bvvnvnnv",
+      "artist": "Elena Rostova",
+      "year": "2026",
+      "medium": "hvvnnv ",
+      "dimensions": "120*50",
+      "status": "Available",
+      "imageUrl": "/images/bvvnvnnv_1782536663246.png",
+      "aspectRatio": 1.8333333333333333,
+      "description": "ghhjj"
+    }
+  ],
+  "exhibitions": [
+    {
+      "id": "silent-contours",
+      "slug": "silent-contours",
+      "title": "Silent Contours",
+      "subtitle": "A Study in Restraint and Space",
+      "venue": "Elysian Fine Arts",
+      "city": "New York",
+      "startDate": "2026-06-15",
+      "endDate": "2026-08-01",
+      "status": "Current",
+      "installShotUrl": "/images/exhibition_install.png",
+      "curatorialText": "Silent Contours brings together recent paintings, sculptures, and works on paper that explore the threshold between physical matter and negative space. Operating within a strictly limited chromatic palette, the artist invites the viewer into a direct, unmediated encounter with form. Each object functions as a silent punctuation mark within the white-cube space, highlighting the active role of the surrounding void.",
+      "featuredArtworkIds": [
+        "silence-in-ochre",
+        "construct-ii",
+        "fragments-of-shell"
+      ],
+      "pressMentions": [
+        "Artforum — \"A masterful lesson in the power of visual silence\"",
+        "The New York Times — \"Refinement through deletion\"",
+        "Frieze Magazine — \"Objects that breathe in the white cube\""
+      ]
+    },
+    {
+      "id": "brutalist-rhythms",
+      "slug": "brutalist-rhythms",
+      "title": "Brutalist Rhythms",
+      "subtitle": "Architectural Lines and Shadows",
+      "venue": "Metropolis Gallery",
+      "city": "London",
+      "startDate": "2026-10-10",
+      "endDate": "2026-11-22",
+      "status": "Upcoming",
+      "installShotUrl": "/images/artwork_photography.png",
+      "curatorialText": "An upcoming solo presentation focusing on architectural photography and industrial scale drawings. Examining structural lines and the play of light over monolithic facades, Brutalist Rhythms shifts the viewer's gaze toward the overlooked geometric rhythms of the urban landscape.",
+      "featuredArtworkIds": [
+        "overpass-at-dusk"
+      ],
+      "pressMentions": []
+    },
+    {
+      "id": "material-gravity",
+      "slug": "material-gravity",
+      "title": "Material Gravity",
+      "subtitle": "Early Sculptural Configurations",
+      "venue": "Galerie Hélène",
+      "city": "Paris",
+      "startDate": "2025-03-03",
+      "endDate": "2025-04-12",
+      "status": "Past",
+      "installShotUrl": "/images/artwork_sculpture.png",
+      "curatorialText": "Material Gravity marked the artist's first major European exhibition, presenting a body of work that challenged the perceived lightness of heavy structural mediums. Incorporating travertine stone, raw iron, and brushed steel, the sculptures serve as a dialogue between natural tectonic sedimentation and rigorous human geometry.",
+      "featuredArtworkIds": [
+        "construct-ii"
+      ],
+      "pressMentions": [
+        "Le Monde — \"Gravitational tension that feels weightless\"",
+        "Art Monthly — \"Traversing stone and steel\""
+      ]
+    }
+  ],
+  "artistBio": {
+    "name": "Elena Rostova",
+    "portraitUrl": "/images/artist_portrait.png",
+    "bioParagraphs": [
+      "Elena Rostova (b. 1991, St. Petersburg) is a multidisciplinary artist working across painting, sculpture, and photography. Her practice is grounded in the concepts of subtraction, spatial weight, and architectural silence. By restricting her palette to organic materials and near-monochrome tones, she investigates how objects sit in space and the psychological resonance of the unfilled void.",
+      "Her structural paintings rely on dense plaster and oil overlays, while her sculptural configurations pair the tectonic density of stone with industrial steel plate systems. Each work acts as a container for light and shadow, fluctuating depending on the time of day and the physical position of the viewer.",
+      "Rostova holds an MFA from the Royal College of Art, London. She currently lives and works between New York and Berlin."
+    ],
+    "education": [
+      {
+        "degree": "MFA in Fine Art",
+        "school": "Royal College of Art, London",
+        "year": "2016"
+      },
+      {
+        "degree": "BFA in Painting",
+        "school": "Repin Institute of Arts, St. Petersburg",
+        "year": "2013"
+      }
+    ],
+    "awards": [
+      {
+        "title": "The Hepworth Sculpture Prize (Shortlist)",
+        "organization": "Hepworth Wakefield",
+        "year": "2025"
+      },
+      {
+        "title": "Artist in Residence Fellowship",
+        "organization": "Künstlerhaus Bethanien, Berlin",
+        "year": "2022"
+      },
+      {
+        "title": "Young Artist Foundation Grant",
+        "organization": "Moscow Museum of Modern Art",
+        "year": "2018"
+      }
+    ],
+    "selectedPress": [
+      {
+        "title": "Elena Rostova: The Weight of Nothingness",
+        "publication": "Artforum",
+        "year": "2025"
+      },
+      {
+        "title": "Studio Visit: Elena Rostova's Berlin Sanctuary",
+        "publication": "T Magazine (The New York Times)",
+        "year": "2024"
+      },
+      {
+        "title": "Sculpting in the Negative: An Interview with Rostova",
+        "publication": "Frieze",
+        "year": "2023"
+      }
+    ]
+  }
+}
