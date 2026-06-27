@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { put } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -49,28 +48,19 @@ export async function POST(request: Request) {
     const extension = originalName.split(".").pop() || "png";
     const filename = `${slug}_${Date.now()}.${extension}`;
 
-    // 4. Save Binary File (Vercel Blob with Local Fallback)
+    // 4. Save Binary File (Local Storage)
     let imageUrl = "";
 
-    const hasVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
-
-    if (hasVercelBlob) {
-      const blob = await put(filename, file, {
-        access: "public",
-      });
-      imageUrl = blob.url;
-    } else {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uploadDir = path.join(process.cwd(), "public", "images");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      const uploadPath = path.join(uploadDir, filename);
-      fs.writeFileSync(uploadPath, buffer);
-      imageUrl = `/images/${filename}`;
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    
+    const uploadDir = path.join(process.cwd(), "public", "images");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
+    const uploadPath = path.join(uploadDir, filename);
+    fs.writeFileSync(uploadPath, buffer);
+    imageUrl = `/images/${filename}`;
 
     // 5. Update JSON Database File
     const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");

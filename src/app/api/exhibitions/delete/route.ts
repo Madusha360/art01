@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { del } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -23,17 +22,8 @@ export async function POST(request: Request) {
 
     const exhibition = database.exhibitions[exhibitionIndex];
 
-    // 2. Delete file from Vercel Blob or local public/images/
+    // 2. Delete file from local public/images/
     if (
-      exhibition.installShotUrl.startsWith("https://") &&
-      exhibition.installShotUrl.includes("public.blob.vercel-storage.com")
-    ) {
-      try {
-        await del(exhibition.installShotUrl);
-      } catch (blobErr) {
-        console.error("Failed to delete Vercel Blob file:", blobErr);
-      }
-    } else if (
       exhibition.installShotUrl.startsWith("/images/") &&
       !exhibition.installShotUrl.includes("exhibition_install") &&
       !exhibition.installShotUrl.includes("artwork_") &&

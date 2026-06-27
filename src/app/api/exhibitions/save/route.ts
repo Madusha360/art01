@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { put, del } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -58,31 +57,22 @@ export async function POST(request: Request) {
 
     let installShotUrl = "/images/exhibition_install.png"; // fallback
 
-    // 4. File Processing (Vercel Blob with Local Fallback)
+    // 4. File Processing (Local Storage Only)
     if (file) {
       const originalName = file.name;
       const extension = originalName.split(".").pop() || "png";
       const filename = `exhibition_${slug}_${Date.now()}.${extension}`;
 
-      const hasVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
-
-      if (hasVercelBlob) {
-        const blob = await put(filename, file, {
-          access: "public",
-        });
-        installShotUrl = blob.url;
-      } else {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        
-        const uploadDir = path.join(process.cwd(), "public", "images");
-        if (!fs.existsSync(uploadDir)) {
-          fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        const uploadPath = path.join(uploadDir, filename);
-        fs.writeFileSync(uploadPath, buffer);
-        installShotUrl = `/images/${filename}`;
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
+      const uploadDir = path.join(process.cwd(), "public", "images");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
       }
+      const uploadPath = path.join(uploadDir, filename);
+      fs.writeFileSync(uploadPath, buffer);
+      installShotUrl = `/images/${filename}`;
     }
 
     // 5. Create or Update Entry
@@ -101,15 +91,6 @@ export async function POST(request: Request) {
       } else {
         // Delete old image if it was a user-uploaded one (not stock)
         if (
-          existingExhibition.installShotUrl.startsWith("https://") &&
-          existingExhibition.installShotUrl.includes("public.blob.vercel-storage.com")
-        ) {
-          try {
-            await del(existingExhibition.installShotUrl);
-          } catch (err) {
-            console.error("Failed to delete old Vercel Blob image:", err);
-          }
-        } else if (
           existingExhibition.installShotUrl.startsWith("/images/") &&
           !existingExhibition.installShotUrl.includes("exhibition_install") &&
           !existingExhibition.installShotUrl.includes("artwork_") &&
