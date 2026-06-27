@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { artworks, Artwork } from "@/data/galleryData";
+import { artworks } from "@/data/galleryData";
 import MetadataTable from "@/components/MetadataTable";
 import StatusPill from "@/components/StatusPill";
 import Lightbox from "@/components/Lightbox";
@@ -17,43 +17,12 @@ export default function ArtworkDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [frameStyle, setFrameStyle] = useState<"none" | "oak" | "black">("none");
   const [showScaleVisualizer, setShowScaleVisualizer] = useState(false);
-  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>(artworks);
-  const [isLoading, setIsLoading] = useState(true);
 
   const slug = params?.slug as string;
 
-  useEffect(() => {
-    const loadFreshArt = async () => {
-      try {
-        const res = await fetch("/api/gallery");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.artworks) {
-            setLoadedArtworks(data.artworks);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load dynamic artworks list", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadFreshArt();
-  }, []);
-
   // Find current artwork
-  const currentIndex = loadedArtworks.findIndex((a) => a.slug === slug);
-  const artwork = loadedArtworks[currentIndex];
-
-  if (isLoading) {
-    return (
-      <div className="bg-bg-gallery min-h-screen flex items-center justify-center pt-24">
-        <div className="text-center font-sans text-xs uppercase tracking-[0.1em] text-text-gallery-secondary">
-          Loading Artwork...
-        </div>
-      </div>
-    );
-  }
+  const currentIndex = artworks.findIndex((a) => a.slug === slug);
+  const artwork = artworks[currentIndex];
 
   if (!artwork) {
     return (
@@ -69,10 +38,10 @@ export default function ArtworkDetailPage() {
   }
 
   // Calculate prev/next artwork links
-  const prevIndex = (currentIndex - 1 + loadedArtworks.length) % loadedArtworks.length;
-  const nextIndex = (currentIndex + 1) % loadedArtworks.length;
-  const prevArtwork = loadedArtworks[prevIndex];
-  const nextArtwork = loadedArtworks[nextIndex];
+  const prevIndex = (currentIndex - 1 + artworks.length) % artworks.length;
+  const nextIndex = (currentIndex + 1) % artworks.length;
+  const prevArtwork = artworks[prevIndex];
+  const nextArtwork = artworks[nextIndex];
 
   // Set up metadata rows
   const metadataRows = [

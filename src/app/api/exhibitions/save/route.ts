@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { v2 as cloudinary } from "cloudinary";
-import { getDatabase, saveDatabase } from "@/data/dbHelper";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { put, del } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -59,38 +52,29 @@ export async function POST(request: Request) {
     if (!slug) slug = "exhibition-" + Date.now();
 
     // 3. Load DB
-    const database = await getDatabase();
+    const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
+    const dbData = fs.readFileSync(dbPath, "utf-8");
+    const database = JSON.parse(dbData);
 
     let installShotUrl = "/images/exhibition_install.png"; // fallback
 
-    // 4. File Processing (Cloudinary with Local Fallback)
+    // 4. File Processing (Vercel Blob with Local Fallback)
     if (file) {
       const originalName = file.name;
       const extension = originalName.split(".").pop() || "png";
       const filename = `exhibition_${slug}_${Date.now()}.${extension}`;
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
 
-      const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
-                            process.env.CLOUDINARY_API_KEY && 
-                            process.env.CLOUDINARY_API_SECRET;
+      const hasVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-      if (hasCloudinary) {
-        const uploadResult = await new Promise<any>((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {
-              folder: "art_gallery",
-              public_id: `exhibition_${slug}_${Date.now()}`,
-            },
-            (error, result) => {
-              if (error) return reject(error);
-              resolve(result);
-            }
-          );
-          uploadStream.end(buffer);
+      if (hasVercelBlob) {
+        const blob = await put(filename, file, {
+          access: "public",
         });
-        installShotUrl = uploadResult.secure_url;
+        installShotUrl = blob.url;
       } else {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        
         const uploadDir = path.join(process.cwd(), "public", "images");
         if (!fs.existsSync(uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
@@ -117,6 +101,15 @@ export async function POST(request: Request) {
       } else {
         // Delete old image if it was a user-uploaded one (not stock)
         if (
+          existingExhibition.installShotUrl.startsWith("https://") &&
+          existingExhibition.installShotUrl.includes("public.blob.vercel-storage.com")
+        ) {
+          try {
+            await del(existingExhibition.installShotUrl);
+          } catch (err) {
+            console.error("Failed to delete old Vercel Blob image:", err);
+          }
+        } else if (
           existingExhibition.installShotUrl.startsWith("/images/") &&
           !existingExhibition.installShotUrl.includes("exhibition_install") &&
           !existingExhibition.installShotUrl.includes("artwork_") &&
@@ -127,7 +120,7 @@ export async function POST(request: Request) {
             try {
               fs.unlinkSync(oldFilePath);
             } catch (err) {
-              console.error("Failed to delete old image:", err);
+              console.error("Failed to delete old local image:", err);
             }
           }
         }
@@ -191,8 +184,8 @@ export async function POST(request: Request) {
       database.exhibitions.push(newExhibition);
     }
 
-    // Save back to database
-    await saveDatabase(database);
+    // Save back to JSON file
+    fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), "utf-8");
 
     return NextResponse.json({ success: true });
   } catch (error) {

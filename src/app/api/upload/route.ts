@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { v2 as cloudinary } from "cloudinary";
-import { getDatabase, saveDatabase } from "@/data/dbHelper";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { put } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -56,31 +49,20 @@ export async function POST(request: Request) {
     const extension = originalName.split(".").pop() || "png";
     const filename = `${slug}_${Date.now()}.${extension}`;
 
-    // 4. Save Binary File (Cloudinary with Local Fallback)
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // 4. Save Binary File (Vercel Blob with Local Fallback)
     let imageUrl = "";
 
-    const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
-                          process.env.CLOUDINARY_API_KEY && 
-                          process.env.CLOUDINARY_API_SECRET;
+    const hasVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-    if (hasCloudinary) {
-      const uploadResult = await new Promise<any>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: "art_gallery",
-            public_id: `${slug}_${Date.now()}`,
-          },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        );
-        uploadStream.end(buffer);
+    if (hasVercelBlob) {
+      const blob = await put(filename, file, {
+        access: "public",
       });
-      imageUrl = uploadResult.secure_url;
+      imageUrl = blob.url;
     } else {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
       const uploadDir = path.join(process.cwd(), "public", "images");
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -90,8 +72,10 @@ export async function POST(request: Request) {
       imageUrl = `/images/${filename}`;
     }
 
-    // 5. Update Database File
-    const database = await getDatabase();
+    // 5. Update JSON Database File
+    const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
+    const dbData = fs.readFileSync(dbPath, "utf-8");
+    const database = JSON.parse(dbData);
 
     // Ensure slug uniqueness
     let finalSlug = slug;
@@ -117,8 +101,8 @@ export async function POST(request: Request) {
 
     database.artworks.push(newArtwork);
     
-    // Save back to database
-    await saveDatabase(database);
+    // Write back to JSON file
+    fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), "utf-8");
 
     return NextResponse.json({
       success: true,
