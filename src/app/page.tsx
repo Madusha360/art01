@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
-import { artworks, exhibitions, Artwork } from "@/data/galleryData";
+import { Artwork } from "@/data/galleryData";
 import ArtworkCard from "@/components/ArtworkCard";
 
 export default function Home() {
-  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>(artworks);
+  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>([]);
 
   useEffect(() => {
     const loadFreshArt = async () => {

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { getArtworks, addArtwork, uploadImage } from "@/lib/firebaseService";
 
 export async function POST(request: Request) {
   try {
@@ -35,68 +34,50 @@ export async function POST(request: Request) {
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, "-") // Replace spaces with -
-        .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-        .replace(/\-\-+/g, "-"); // Replace multiple - with single -
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-\-+/g, "-");
     };
 
     let slug = slugify(title);
     if (!slug) slug = "untitled-" + Date.now();
-    
-    // Extract file extension
-    const originalName = file.name;
-    const extension = originalName.split(".").pop() || "png";
-    const filename = `${slug}_${Date.now()}.${extension}`;
 
-    // 4. Save Binary File (Local Storage)
-    let imageUrl = "";
+    // 4. Upload Image to Firebase Storage
+    const extension = file.name.split(".").pop() || "png";
+    const filename = `artworks/${slug}_${Date.now()}.${extension}`;
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    const uploadDir = path.join(process.cwd(), "public", "images");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    const uploadPath = path.join(uploadDir, filename);
-    fs.writeFileSync(uploadPath, buffer);
-    imageUrl = `/images/${filename}`;
+    const imageUrl = await uploadImage(filename, buffer, file.type);
 
-    // 5. Update JSON Database File
-    const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
-    const dbData = fs.readFileSync(dbPath, "utf-8");
-    const database = JSON.parse(dbData);
-
-    // Ensure slug uniqueness
+    // 5. Ensure slug uniqueness in Firestore
+    const existingArtworks = await getArtworks();
     let finalSlug = slug;
     let counter = 1;
-    while (database.artworks.some((a: any) => a.slug === finalSlug)) {
+    while (existingArtworks.some((a: any) => a.slug === finalSlug)) {
       finalSlug = `${slug}-${counter}`;
       counter++;
     }
 
     const newArtwork = {
-      id: finalSlug,
       slug: finalSlug,
-      title: title,
-      artist: artist,
-      year: year,
-      medium: medium,
-      dimensions: dimensions,
-      status: status,
-      imageUrl: imageUrl,
-      aspectRatio: aspectRatio,
-      description: description,
+      title,
+      artist,
+      year,
+      medium,
+      dimensions,
+      status,
+      imageUrl,
+      aspectRatio,
+      description,
     };
 
-    database.artworks.push(newArtwork);
-    
-    // Write back to JSON file
-    fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), "utf-8");
+    // 6. Save to Firestore
+    await addArtwork(finalSlug, newArtwork);
 
     return NextResponse.json({
       success: true,
-      artwork: newArtwork,
+      artwork: { id: finalSlug, ...newArtwork },
     });
   } catch (error) {
     console.error("Upload error details:", error);

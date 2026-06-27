@@ -5,15 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { exhibitions, artworks, Exhibition, Artwork } from "@/data/galleryData";
+import { Exhibition, Artwork } from "@/data/galleryData";
 import ArtworkCard from "@/components/ArtworkCard";
 
 export default function ExhibitionDetailPage() {
   const params = useParams();
   const slug = params?.slug as string;
 
-  const [loadedExhibitions, setLoadedExhibitions] = useState<Exhibition[]>(exhibitions);
-  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>(artworks);
+  const [loadedExhibitions, setLoadedExhibitions] = useState<Exhibition[]>([]);
+  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>([]);
 
   useEffect(() => {
     const loadFreshData = async () => {

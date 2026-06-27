@@ -1,5 +1,3 @@
-import galleryData from "./galleryData.json";
-
 export interface Artwork {
   id: string;
   slug: string;
@@ -38,8 +36,3 @@ export interface ArtistBio {
   awards: { title: string; organization: string; year: string }[];
   selectedPress: { title: string; publication: string; year: string }[];
 }
-
-// Export data loaded from JSON
-export const artworks = galleryData.artworks as Artwork[];
-export const exhibitions = galleryData.exhibitions as Exhibition[];
-export const artistBio = galleryData.artistBio as ArtistBio;

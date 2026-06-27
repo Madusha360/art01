@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import {
+  getExhibitions,
+  getExhibition,
+  addExhibition,
+  updateExhibition,
+  uploadImage,
+  deleteImage,
+} from "@/lib/firebaseService";
 
 export async function POST(request: Request) {
   try {
@@ -42,85 +48,59 @@ export async function POST(request: Request) {
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, "-") // Replace spaces with -
-        .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-        .replace(/\-\-+/g, "-"); // Replace multiple - with single -
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-\-+/g, "-");
     };
 
     let slug = slugify(title);
     if (!slug) slug = "exhibition-" + Date.now();
 
-    // 3. Load DB
-    const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
-    const dbData = fs.readFileSync(dbPath, "utf-8");
-    const database = JSON.parse(dbData);
+    let installShotUrl = ""; // Will be set below
 
-    let installShotUrl = "/images/exhibition_install.png"; // fallback
-
-    // 4. File Processing (Local Storage Only)
+    // 3. File Processing (Firebase Storage)
     if (file) {
-      const originalName = file.name;
-      const extension = originalName.split(".").pop() || "png";
-      const filename = `exhibition_${slug}_${Date.now()}.${extension}`;
+      const extension = file.name.split(".").pop() || "png";
+      const filename = `exhibitions/exhibition_${slug}_${Date.now()}.${extension}`;
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      
-      const uploadDir = path.join(process.cwd(), "public", "images");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      const uploadPath = path.join(uploadDir, filename);
-      fs.writeFileSync(uploadPath, buffer);
-      installShotUrl = `/images/${filename}`;
+      installShotUrl = await uploadImage(filename, buffer, file.type);
     }
 
-    // 5. Create or Update Entry
+    // 4. Create or Update Entry
     if (id) {
       // --- UPDATE MODE ---
-      const exhibitionIndex = database.exhibitions.findIndex((e: any) => e.id === id);
-      if (exhibitionIndex === -1) {
+      const existingExhibition = await getExhibition(id);
+      if (!existingExhibition) {
         return NextResponse.json({ error: "Exhibition not found." }, { status: 404 });
       }
 
-      const existingExhibition = database.exhibitions[exhibitionIndex];
-
       // Keep existing image if no new file is uploaded
       if (!file) {
-        installShotUrl = existingExhibition.installShotUrl;
+        installShotUrl = existingExhibition.installShotUrl as string;
       } else {
-        // Delete old image if it was a user-uploaded one (not stock)
-        if (
-          existingExhibition.installShotUrl.startsWith("/images/") &&
-          !existingExhibition.installShotUrl.includes("exhibition_install") &&
-          !existingExhibition.installShotUrl.includes("artwork_") &&
-          !existingExhibition.installShotUrl.includes("artist_")
-        ) {
-          const oldFilePath = path.join(process.cwd(), "public", existingExhibition.installShotUrl);
-          if (fs.existsSync(oldFilePath)) {
-            try {
-              fs.unlinkSync(oldFilePath);
-            } catch (err) {
-              console.error("Failed to delete old local image:", err);
-            }
-          }
+        // Delete old image from Firebase Storage
+        const oldUrl = existingExhibition.installShotUrl as string;
+        if (oldUrl) {
+          await deleteImage(oldUrl);
         }
       }
 
       // Generate unique slug for updated title if it changed
       let finalSlug = slug;
       if (existingExhibition.title !== title) {
+        const allExhibitions = await getExhibitions();
         let counter = 1;
-        while (database.exhibitions.some((e: any) => e.slug === finalSlug && e.id !== id)) {
+        while (allExhibitions.some((e: any) => e.slug === finalSlug && e.id !== id)) {
           finalSlug = `${slug}-${counter}`;
           counter++;
         }
       } else {
-        finalSlug = existingExhibition.slug;
+        finalSlug = existingExhibition.slug as string;
       }
 
-      const updatedExhibition = {
-        ...existingExhibition,
+      const updatedData = {
         title,
         slug: finalSlug,
         subtitle,
@@ -135,19 +115,23 @@ export async function POST(request: Request) {
         pressMentions,
       };
 
-      database.exhibitions[exhibitionIndex] = updatedExhibition;
+      await updateExhibition(id, updatedData);
     } else {
       // --- CREATE MODE ---
-      // Ensure slug uniqueness
+      const allExhibitions = await getExhibitions();
       let finalSlug = slug;
       let counter = 1;
-      while (database.exhibitions.some((e: any) => e.slug === finalSlug)) {
+      while (allExhibitions.some((e: any) => e.slug === finalSlug)) {
         finalSlug = `${slug}-${counter}`;
         counter++;
       }
 
+      // Use a default placeholder if no image was uploaded
+      if (!installShotUrl) {
+        installShotUrl = "/images/exhibition_install.png";
+      }
+
       const newExhibition = {
-        id: finalSlug,
         slug: finalSlug,
         title,
         subtitle,
@@ -162,11 +146,8 @@ export async function POST(request: Request) {
         pressMentions,
       };
 
-      database.exhibitions.push(newExhibition);
+      await addExhibition(finalSlug, newExhibition);
     }
-
-    // Save back to JSON file
-    fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), "utf-8");
 
     return NextResponse.json({ success: true });
   } catch (error) {

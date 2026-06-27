@@ -1,10 +1,43 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { artistBio } from "@/data/galleryData";
+import { ArtistBio } from "@/data/galleryData";
 
 export default function AboutPage() {
+  const [artistBio, setArtistBio] = useState<ArtistBio | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBio = async () => {
+      try {
+        const res = await fetch("/api/gallery");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.artistBio) {
+            setArtistBio(data.artistBio);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load artist bio", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadBio();
+  }, []);
+
+  if (isLoading || !artistBio) {
+    return (
+      <div className="bg-bg-gallery min-h-screen flex items-center justify-center pt-24">
+        <div className="font-sans text-xs uppercase tracking-[0.1em] text-text-gallery-secondary">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-bg-gallery min-h-screen pt-28 pb-24 md:pt-36 md:pb-36">
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 w-full">
@@ -14,7 +47,7 @@ export default function AboutPage() {
             About the Artist
           </span>
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight text-text-gallery-primary">
-            Biography & CV
+            Biography &amp; CV
           </h1>
         </div>
 
@@ -88,7 +121,7 @@ export default function AboutPage() {
           <div>
             <div className="border-b border-border-gallery-hairline pb-4 mb-6">
               <h2 className="font-sans text-[10px] tracking-[0.1em] uppercase text-text-gallery-primary font-bold">
-                Awards & Fellowships
+                Awards &amp; Fellowships
               </h2>
             </div>
             <div className="divide-y divide-border-gallery-hairline/60">

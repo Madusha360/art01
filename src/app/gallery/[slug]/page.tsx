@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { artworks } from "@/data/galleryData";
+import { Artwork } from "@/data/galleryData";
 import MetadataTable from "@/components/MetadataTable";
 import StatusPill from "@/components/StatusPill";
 import Lightbox from "@/components/Lightbox";
@@ -17,12 +17,43 @@ export default function ArtworkDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [frameStyle, setFrameStyle] = useState<"none" | "oak" | "black">("none");
   const [showScaleVisualizer, setShowScaleVisualizer] = useState(false);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const slug = params?.slug as string;
+
+  useEffect(() => {
+    const loadArtworks = async () => {
+      try {
+        const res = await fetch("/api/gallery");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.artworks) {
+            setArtworks(data.artworks);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load artworks", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadArtworks();
+  }, []);
 
   // Find current artwork
   const currentIndex = artworks.findIndex((a) => a.slug === slug);
   const artwork = artworks[currentIndex];
+
+  if (isLoading) {
+    return (
+      <div className="bg-bg-gallery min-h-screen flex items-center justify-center pt-24">
+        <div className="font-sans text-xs uppercase tracking-[0.1em] text-text-gallery-secondary">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   if (!artwork) {
     return (
