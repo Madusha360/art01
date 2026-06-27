@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
+import { getDatabase, saveDatabase } from "@/data/dbHelper";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -58,9 +59,7 @@ export async function POST(request: Request) {
     if (!slug) slug = "exhibition-" + Date.now();
 
     // 3. Load DB
-    const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
-    const dbData = fs.readFileSync(dbPath, "utf-8");
-    const database = JSON.parse(dbData);
+    const database = await getDatabase();
 
     let installShotUrl = "/images/exhibition_install.png"; // fallback
 
@@ -192,8 +191,8 @@ export async function POST(request: Request) {
       database.exhibitions.push(newExhibition);
     }
 
-    // Save back to JSON file
-    fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), "utf-8");
+    // Save back to database
+    await saveDatabase(database);
 
     return NextResponse.json({ success: true });
   } catch (error) {

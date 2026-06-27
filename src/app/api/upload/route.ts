@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
+import { getDatabase, saveDatabase } from "@/data/dbHelper";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -89,10 +90,8 @@ export async function POST(request: Request) {
       imageUrl = `/images/${filename}`;
     }
 
-    // 5. Update JSON Database File
-    const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
-    const dbData = fs.readFileSync(dbPath, "utf-8");
-    const database = JSON.parse(dbData);
+    // 5. Update Database File
+    const database = await getDatabase();
 
     // Ensure slug uniqueness
     let finalSlug = slug;
@@ -118,8 +117,8 @@ export async function POST(request: Request) {
 
     database.artworks.push(newArtwork);
     
-    // Write back to JSON file
-    fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), "utf-8");
+    // Save back to database
+    await saveDatabase(database);
 
     return NextResponse.json({
       success: true,
