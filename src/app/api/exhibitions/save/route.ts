@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request: Request) {
   try {
@@ -57,23 +64,42 @@ export async function POST(request: Request) {
 
     let installShotUrl = "/images/exhibition_install.png"; // fallback
 
-    // 4. File Processing
+    // 4. File Processing (Cloudinary with Local Fallback)
     if (file) {
-      // Save newly uploaded install shot
       const originalName = file.name;
       const extension = originalName.split(".").pop() || "png";
       const filename = `exhibition_${slug}_${Date.now()}.${extension}`;
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      
-      const uploadDir = path.join(process.cwd(), "public", "images");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+
+      const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
+                            process.env.CLOUDINARY_API_KEY && 
+                            process.env.CLOUDINARY_API_SECRET;
+
+      if (hasCloudinary) {
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: "art_gallery",
+              public_id: `exhibition_${slug}_${Date.now()}`,
+            },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          uploadStream.end(buffer);
+        });
+        installShotUrl = uploadResult.secure_url;
+      } else {
+        const uploadDir = path.join(process.cwd(), "public", "images");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        const uploadPath = path.join(uploadDir, filename);
+        fs.writeFileSync(uploadPath, buffer);
+        installShotUrl = `/images/${filename}`;
       }
-      
-      const uploadPath = path.join(uploadDir, filename);
-      fs.writeFileSync(uploadPath, buffer);
-      installShotUrl = `/images/${filename}`;
     }
 
     // 5. Create or Update Entry

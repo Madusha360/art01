@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request: Request) {
   try {
@@ -48,19 +55,39 @@ export async function POST(request: Request) {
     const extension = originalName.split(".").pop() || "png";
     const filename = `${slug}_${Date.now()}.${extension}`;
 
-    // 4. Save Binary File
+    // 4. Save Binary File (Cloudinary with Local Fallback)
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    const uploadDir = path.join(process.cwd(), "public", "images");
-    
-    // Ensure public/images directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    let imageUrl = "";
+
+    const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
+                          process.env.CLOUDINARY_API_KEY && 
+                          process.env.CLOUDINARY_API_SECRET;
+
+    if (hasCloudinary) {
+      const uploadResult = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "art_gallery",
+            public_id: `${slug}_${Date.now()}`,
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        uploadStream.end(buffer);
+      });
+      imageUrl = uploadResult.secure_url;
+    } else {
+      const uploadDir = path.join(process.cwd(), "public", "images");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const uploadPath = path.join(uploadDir, filename);
+      fs.writeFileSync(uploadPath, buffer);
+      imageUrl = `/images/${filename}`;
     }
-    
-    const uploadPath = path.join(uploadDir, filename);
-    fs.writeFileSync(uploadPath, buffer);
 
     // 5. Update JSON Database File
     const dbPath = path.join(process.cwd(), "src", "data", "galleryData.json");
@@ -84,7 +111,7 @@ export async function POST(request: Request) {
       medium: medium,
       dimensions: dimensions,
       status: status,
-      imageUrl: `/images/${filename}`,
+      imageUrl: imageUrl,
       aspectRatio: aspectRatio,
       description: description,
     };
