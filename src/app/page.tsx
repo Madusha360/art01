@@ -155,7 +155,7 @@ export default function Home() {
           >
             {/* Exhibition Banner on Left */}
             <div className="lg:col-span-7 relative w-full aspect-[4/3] border border-border-gallery-hairline/60 overflow-hidden group custom-cursor-hover">
-              <Link href={`/exhibitions/${currentExhibition.slug}`}>
+              <Link href={`/exhibitions/${currentExhibition.slug}`} className="relative block w-full h-full">
                 <Image
                   src={currentExhibition.installShotUrl}
                   alt={currentExhibition.title}
