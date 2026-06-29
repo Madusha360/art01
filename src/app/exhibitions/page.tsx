@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { exhibitions, Exhibition } from "@/data/galleryData";
+import { Exhibition } from "@/data/galleryData";
 import TimelineRow from "@/components/TimelineRow";
 
 export default function ExhibitionsPage() {
-  const [loadedExhibitions, setLoadedExhibitions] = useState<Exhibition[]>(exhibitions);
+  const [loadedExhibitions, setLoadedExhibitions] = useState<Exhibition[]>([]);
 
   useEffect(() => {
     const loadFreshExhibitions = async () => {

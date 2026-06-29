@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { artworks, Artwork } from "@/data/galleryData";
+import { Artwork } from "@/data/galleryData";
 import FilterTabBar from "@/components/FilterTabBar";
 import ArtworkCard from "@/components/ArtworkCard";
 
 export default function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>(artworks);
+  const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>([]);
 
   useEffect(() => {
     const loadFreshArt = async () => {
