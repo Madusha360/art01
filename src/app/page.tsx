@@ -4,14 +4,16 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
-import { Artwork } from "@/data/galleryData";
+import { Artwork, Exhibition } from "@/data/galleryData";
 import ArtworkCard from "@/components/ArtworkCard";
 
 export default function Home() {
   const [loadedArtworks, setLoadedArtworks] = useState<Artwork[]>([]);
+  const [loadedExhibitions, setLoadedExhibitions] = useState<Exhibition[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadFreshArt = async () => {
+    const loadFreshData = async () => {
       try {
         const res = await fetch("/api/gallery");
         if (res.ok) {
@@ -19,12 +21,17 @@ export default function Home() {
           if (data.artworks) {
             setLoadedArtworks(data.artworks);
           }
+          if (data.exhibitions) {
+            setLoadedExhibitions(data.exhibitions);
+          }
         }
       } catch (err) {
-        console.error("Failed to load dynamic artworks list", err);
+        console.error("Failed to load dynamic gallery data", err);
+      } finally {
+        setIsLoading(false);
       }
     };
-    loadFreshArt();
+    loadFreshData();
   }, []);
 
   // Get the featured artwork for the hero
@@ -34,7 +41,27 @@ export default function Home() {
   const recentWorks = loadedArtworks.filter((a) => a.id !== "silence-in-ochre");
 
   // Get current exhibition
-  const currentExhibition = exhibitions.find((e) => e.status === "Current") || exhibitions[0];
+  const currentExhibition = loadedExhibitions.find((e) => e.status === "Current") || loadedExhibitions[0];
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-bg-gallery min-h-screen flex items-center justify-center">
+        <span className="font-sans text-xs uppercase tracking-[0.2em] text-text-gallery-secondary animate-pulse">
+          Loading Gallery...
+        </span>
+      </div>
+    );
+  }
+
+  if (!heroArtwork || !currentExhibition) {
+    return (
+      <div className="w-full bg-bg-gallery min-h-screen flex flex-col items-center justify-center gap-4">
+        <span className="font-sans text-xs uppercase tracking-[0.2em] text-text-gallery-secondary">
+          No content found. Please seed the database.
+        </span>
+      </div>
+    );
+  }
 
   // Motion container and item variants for scroll reveals
   const containerVariants: Variants = {
