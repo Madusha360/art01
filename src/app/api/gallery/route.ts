@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFullDatabase } from "@/lib/firebaseService";
+import { getFullDatabase } from "@/lib/dbService";
 
 export const dynamic = "force-dynamic";
 

@@ -6,7 +6,7 @@ import {
   updateExhibition,
   uploadImage,
   deleteImage,
-} from "@/lib/firebaseService";
+} from "@/lib/dbService";
 
 export async function POST(request: Request) {
   try {

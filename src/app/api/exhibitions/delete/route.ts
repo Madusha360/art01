@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getExhibition, deleteExhibitionDoc, deleteImage } from "@/lib/firebaseService";
+import { getExhibition, deleteExhibitionDoc, deleteImage } from "@/lib/dbService";
 
 export async function POST(request: Request) {
   try {

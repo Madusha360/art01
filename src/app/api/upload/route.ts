@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getArtworks, addArtwork, uploadImage } from "@/lib/firebaseService";
+import { getArtworks, addArtwork, uploadImage } from "@/lib/dbService";
 
 export async function POST(request: Request) {
   try {
